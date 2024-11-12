@@ -80,7 +80,7 @@
     <script>
         async function getCryptoPrices() {
             try {
-                const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,ripple,cardano&vs_currencies=usd&include_24hr_change=true');
+                const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,aptos,cardano&vs_currencies=usd&include_24hr_change=true');
                 const container = document.getElementById('crypto-container');
                 container.innerHTML = '';
 
