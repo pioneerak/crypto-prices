@@ -3,93 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Курсы криптовалют</title>
+    <title>Crypto Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #2d3436;
+            --secondary: #636e72;
+            --accent: #00b894;
+            --danger: #d63031;
+            --success: #00b894;
+            --card-bg: rgba(45, 52, 54, 0.95);
+            --hover-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
+            font-family: 'IBM Plex Mono', monospace;
+            background: #000000;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
-            color: #333;
         }
 
         .header {
             text-align: center;
             margin-bottom: 40px;
+            position: relative;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .crypto-grid {
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--accent), #81ecec);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .fear-greed-index {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .fear-greed-value {
+            font-size: 2em;
+            margin: 10px 0;
         }
 
         .crypto-card {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crypto-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: 0.5s;
+        }
+
+        .crypto-card:hover::before {
+            transform: translateX(100%);
         }
 
         .crypto-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            background: var(--hover-bg);
         }
 
         .crypto-name {
             font-size: 1.2em;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .crypto-icon {
+            width: 24px;
+            height: 24px;
         }
 
         .crypto-price {
-            font-size: 1.4em;
-            color: #2d3748;
+            font-size: 1.6em;
+            color: #fff;
+            margin-bottom: 10px;
         }
 
         .crypto-change {
-            font-size: 0.9em;
-            margin-top: 5px;
+            font-size: 1em;
+            padding: 5px 10px;
+            border-radius: 5px;
+
+display: inline-block;
         }
 
         .positive {
-            color: #48bb78;
+            background: rgba(0, 184, 148, 0.2);
+            color: var(--success);
         }
 
         .negative {
-            color: #f56565;
+            background: rgba(214, 48, 49, 0.2);
+            color: var(--danger);
+        }
+
+        .portfolio-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .portfolio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .add-coin-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: var(--accent);
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #00a884;
+        }
+
+        .portfolio-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .portfolio-table th,
+        .portfolio-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .portfolio-table th {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .remove-btn {
+            background: var(--danger);
+            padding: 5px 10px;
+        }
+
+        .remove-btn:hover {
+            background: #c42e2e;
         }
 
         .loading {
             text-align: center;
             font-size: 1.2em;
-            color: #666;
+            color: var(--secondary);
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .add-coin-form {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Курсы криптовалют</h1>
-    </div>
-    <div id="crypto-container" class="crypto-grid">
-        <div class="loading">Загрузка данных...</div>
+    <div class="container">
+        <header class="header">
+            <h1>Crypto Dashboard</h1>
+            <p>Живые данные криптовалютного рынка</p>
+        </header>
+
+        <div class="fear-greed-index">
+            <h2>Индекс страха и жадности</h2>
+            <div class="fear-greed-value">
+                <span id="fear-greed">Загрузка...</span>
+            </div>
+        </div>
+
+        <div id="crypto-container" class="dashboard-grid">
+            <div class="loading">Загрузка данных...</div>
+        </div>
+
+        <section class="portfolio-section">
+            <div class="portfolio-header">
+                <h2>Мой портфель</h2>
+                <div class="portfolio-value">Общая стоимость: $<span id="total-value">0.00</span></div>
+            </div>
+
+            <form id="add-coin-form" class="add-coin-form">
+                <div class="input-group">
+                    <input type="text" id="coin-symbol" placeholder="Символ монеты (например, BTC)" required>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="coin-amount" placeholder="Количество" step="any" required>
+                </div>
+                <button type="submit">Добавить</button>
+            </form>
+
+            <table class="portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Монета</th>
+                        <th>Количество</th>
+                        <th>Цена</th>
+                        <th>Стоимость</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="portfolio-body">
+
+<!-- Данные портфеля будут добавлены здесь -->
+                </tbody>
+            </table>
+        </section>
     </div>
 
     <script>
+        // Хранение портфеля в localStorage
+        let portfolio = JSON.parse(localStorage.getItem('cryptoPortfolio')) || {};
+
+        // Получение индекса страха и жадности
+        async function getFearGreedIndex() {
+            try {
+                const response = await axios.get('https://api.alternative.me/fng/');
+                const value = response.data.data[0].value;
+                const classification = getFearGreedClassification(value);
+                document.getElementById('fear-greed').innerHTML = ${value} - ${classification};
+            } catch (error) {
+                document.getElementById('fear-greed').textContent = 'Ошибка загрузки';
+            }
+        }
+
+        function getFearGreedClassification(value) {
+            if (value <= 20) return 'Экстремальный страх';
+            if (value <= 40) return 'Страх';
+            if (value <= 60) return 'Нейтрально';
+            if (value <= 80) return 'Жадность';
+            return 'Экстремальная жадность';
+        }
+
+        // Получение данных о криптовалютах
         async function getCryptoPrices() {
             try {
-                const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,aptos,cardano&vs_currencies=usd&include_24hr_change=true');
+                const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,ripple,cardano,solana,polkadot,avalanche-2,dogecoin&vs_currencies=usd&include_24hr_change=true');
                 const container = document.getElementById('crypto-container');
                 container.innerHTML = '';
 
                 const cryptoNames = {
-                    bitcoin: 'Bitcoin (BTC)',
-                    ethereum: 'Ethereum (ETH)',
-                    binancecoin: 'Binance Coin (BNB)',
-                    aptos: 'Aptos (APT)',
-                    cardano: 'Cardano (ADA)'
+                    bitcoin: { name: 'Bitcoin', symbol: 'BTC' },
+                    ethereum: { name: 'Ethereum', symbol: 'ETH' },
+                    binancecoin: { name: 'Binance Coin', symbol: 'BNB' },
+                    ripple: { name: 'Ripple', symbol: 'XRP' },
+                    cardano: { name: 'Cardano', symbol: 'ADA' },
+                    solana: { name: 'Solana', symbol: 'SOL' },
+                    polkadot: { name: 'Polkadot', symbol: 'DOT' },
+                    'avalanche-2': { name: 'Avalanche', symbol: 'AVAX' },
+                    dogecoin: { name: 'Dogecoin', symbol: 'DOGE' }
                 };
 
                 for (const [crypto, data] of Object.entries(response.data)) {
@@ -100,7 +346,10 @@
                     const card = document.createElement('div');
                     card.className = 'crypto-card';
                     card.innerHTML = `
-                        <div class="crypto-name">${cryptoNames[crypto]}</div>
+                        <div class="crypto-name">
+                            <i class="fab fa-${crypto === 'binancecoin' ? 'bitcoin' : crypto}"></i>
+                            ${cryptoNames[crypto].name} (${cryptoNames[crypto].symbol})
+                        </div>
                         <div class="crypto-price">$${data.usd.toLocaleString()}</div>
                         <div class="crypto-change ${changeClass}">
                             ${changeSymbol} ${Math.abs(change).toFixed(2)}%
@@ -108,15 +357,103 @@
                     `;
                     container.appendChild(card);
                 }
+
+                updatePortfolioValues(response.data);
             } catch (error) {
                 document.getElementById('crypto-container').innerHTML = 
                     '<div class="loading">Ошибка при загрузке данных. Пожалуйста, попробуйте позже.</div>';
             }
         }
 
-        // Обновление данных каждые 60 секунд
+        // Обработка формы добавления монеты
+        document.getElementById('add-coin-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const symbol = document.getElementById('coin-symbol').value.toUpperCase();
+            const amount = parseFloat(document.getElementById('coin-amount').value);
+
+            portfolio[symbol] = amount;
+            localStorage.setItem('cryptoPortfolio', JSON.stringify(portfolio));
+
+updatePortfolioTable();
+            
+            // Очистка формы
+            e.target.reset();
+        });
+
+        // Обновление таблицы портфеля
+        function updatePortfolioTable() {
+            const tbody = document.getElementById('portfolio-body');
+            tbody.innerHTML = '';
+
+            for (const [symbol, amount] of Object.entries(portfolio)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${symbol}</td>
+                    <td>${amount}</td>
+                    <td>Загрузка...</td>
+                    <td>Загрузка...</td>
+                    <td>
+                        <button class="remove-btn" onclick="removeCoin('${symbol}')">
+                            Удалить
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // Удаление монеты из портфеля
+        function removeCoin(symbol) {
+            delete portfolio[symbol];
+            localStorage.setItem('cryptoPortfolio', JSON.stringify(portfolio));
+            updatePortfolioTable();
+        }
+
+        // Обновление значений портфеля
+        async function updatePortfolioValues(priceData) {
+            if (Object.keys(portfolio).length ===</antArtifact>
+
+// Обновление значений портфеля
+        async function updatePortfolioValues(priceData) {
+            let totalValue = 0;
+            const tbody = document.getElementById('portfolio-body');
+            const rows = tbody.getElementsByTagName('tr');
+
+            for (const [symbol, amount] of Object.entries(portfolio)) {
+                const coinId = Object.keys(priceData).find(key => 
+                    key.toLowerCase() === symbol.toLowerCase() ||
+                    priceData[key].symbol?.toLowerCase() === symbol.toLowerCase()
+                );
+
+                if (coinId && priceData[coinId]) {
+                    const price = priceData[coinId].usd;
+                    const value = price * amount;
+                    totalValue += value;
+
+                    // Обновление строки в таблице
+                    for (let row of rows) {
+                        if (row.cells[0].textContent === symbol) {
+                            row.cells[2].textContent = $${price.toLocaleString()};
+                            row.cells[3].textContent = $${value.toLocaleString()};
+                            break;
+                        }
+                    }
+                }
+            }
+
+            document.getElementById('total-value').textContent = totalValue.toLocaleString();
+        }
+
+        // Инициализация
+        getFearGreedIndex();
         getCryptoPrices();
-        setInterval(getCryptoPrices, 60000);
+        updatePortfolioTable();
+
+        // Обновление данных каждые 60 секунд
+        setInterval(() => {
+            getFearGreedIndex();
+            getCryptoPrices();
+        }, 60000);
     </script>
 </body>
 </html>
